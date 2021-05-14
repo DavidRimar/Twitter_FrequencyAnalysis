@@ -3,6 +3,11 @@ import numpy
 import re
 from nltk.corpus import stopwords
 import nltk
+import collections
+import os
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 class DataPreProcessor():
@@ -128,3 +133,38 @@ class DataPreProcessor():
 
         print("RAW: ", self.raw_tweet_text_array[3])
         print("CLEANSED", self.cleansed_tweet_text_array[3])
+
+    def flatten_words_from_tweets(self):
+
+        flattened_word_corpus = [
+            item for sublist in self.cleansed_tweet_text_array for item in sublist]
+
+        return flattened_word_corpus
+
+    def create_word_count_dict(self, number):
+
+        words_dict = self.flatten_words_from_tweets()
+
+        word_counts_dict = collections.Counter(words_dict)
+
+        words_dict_top_n = pd.DataFrame(
+            word_counts_dict.most_common(number), columns=['words', 'counts'])
+
+        return words_dict_top_n
+
+    def show_word_frequencies(self, number):
+
+        # create a Pandas DataFrame with word counts
+        words_dict_top_n = self.create_word_count_dict(number)
+
+        fig, axis = plt.subplots(figsize=(8, 8))
+
+        # Plot horizontal bar graph
+        words_dict_top_n.sort_values(by='counts').plot.barh(x='words',
+                                                            y='counts',
+                                                            ax=axis,
+                                                            color="blue")
+
+        axis.set_title("Most Frequent Words Found in Tweets")
+
+        plt.show()
