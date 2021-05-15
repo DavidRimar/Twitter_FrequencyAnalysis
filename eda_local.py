@@ -57,6 +57,6 @@ data_pre_processor = DataPreProcessor(df_textual_generic)
 data_pre_processor.cleanse_all_tweets()
 
 # inspect cleansed tweets
-# data_pre_processor.inspect()
+data_pre_processor.inspect()
 
 data_pre_processor.show_word_frequencies(20)

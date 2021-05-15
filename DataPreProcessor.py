@@ -8,6 +8,9 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import contractions
+from numpy.compat import unicode
+import html
 
 
 class DataPreProcessor():
@@ -62,6 +65,15 @@ class DataPreProcessor():
 
         return " ".join(re.sub(r"http\S+", "", tweet_text).split())
 
+    def fix_contractions(self, tweet_text):
+
+        return contractions.fix(tweet_text)
+
+    def unescape_html_entities(self, text):
+        """Converts HTML entities to unicode."""
+        text = html.unescape(text)
+        return text
+
     def convert_to_lowercase(self, tokenized_tweet):
 
         tokenized_tweet_lc = []
@@ -71,6 +83,15 @@ class DataPreProcessor():
             tokenized_tweet_lc.append(word.lower())
 
         return tokenized_tweet_lc
+
+    def remove_punctuation(self, tweet_tokens):
+
+        new_tokens = []
+        for token in tweet_tokens:
+            new_token = re.sub(r'[^\w\s]', '', token)
+            if new_token != '':
+                new_tokens.append(new_token)
+        return new_tokens
 
     # words is an array
     def remove_stopwords(self, single_tweet_tokenized):
@@ -91,6 +112,10 @@ class DataPreProcessor():
         single_tweet = self.remove_urls(single_tweet)
 
         # REMOVE CONTRACTIONs
+        single_tweet = self.fix_contractions(single_tweet)
+
+        # UNESCAPE HTML ENTITIES
+        single_tweet = self.unescape_html_entities(single_tweet)
 
         # TOKENIZE WORDS
         tokenized_tweet = nltk.word_tokenize(single_tweet)
@@ -101,9 +126,12 @@ class DataPreProcessor():
         clean_tokenized_tweet = self.convert_to_lowercase(tokenized_tweet)
 
         # REMOVE PUNCTUATION
+        # clean_tokenized_tweet = self.remove_punctuation(clean_tokenized_tweet)
+
+        # REPLACE NUMBERS
 
         # REMOVE STOP WORDS
-        cleans_tokenized_tweet = self.remove_stopwords(clean_tokenized_tweet)
+        # clean_tokenized_tweet = self.remove_stopwords(clean_tokenized_tweet)
 
         return clean_tokenized_tweet
 
@@ -125,14 +153,14 @@ class DataPreProcessor():
 
     def inspect(self):
 
-        print("RAW: ", self.raw_tweet_text_array[14])
-        print("CLEANSED", self.cleansed_tweet_text_array[14])
+        print("RAW: ", self.raw_tweet_text_array[11])
+        print("CLEANSED", self.cleansed_tweet_text_array[11])
 
-        print("RAW: ", self.raw_tweet_text_array[27])
-        print("CLEANSED", self.cleansed_tweet_text_array[27])
+        print("RAW: ", self.raw_tweet_text_array[463])
+        print("CLEANSED", self.cleansed_tweet_text_array[463])
 
-        print("RAW: ", self.raw_tweet_text_array[3])
-        print("CLEANSED", self.cleansed_tweet_text_array[3])
+        print("RAW: ", self.raw_tweet_text_array[2451])
+        print("CLEANSED", self.cleansed_tweet_text_array[2451])
 
     def flatten_words_from_tweets(self):
 
