@@ -1,6 +1,7 @@
 # import statments
 import numpy
 import re
+import unicodedata
 from nltk.corpus import stopwords
 import nltk
 import collections
@@ -11,6 +12,16 @@ import seaborn as sns
 import contractions
 from numpy.compat import unicode
 import html
+import inflect
+
+
+"""
+sources: 
+1. https://gist.github.com/MrEliptik/b3f16179aa2f530781ef8ca9a16499af
+
+2. https://www.earthdatascience.org/courses/use-data-open-source-python/intro-to-apis/calculate-tweet-word-frequencies-in-python/
+
+"""
 
 
 class DataPreProcessor():
@@ -21,7 +32,7 @@ class DataPreProcessor():
         # nltk.download()
 
         ### INSTANCE VARIABLES ###
-        self.raw_tweet_text_array = self.convert_text_to_array(text_to_cleanse)
+        self.raw_tweet_text_array = self.convert_df_to_array(text_to_cleanse)
 
         # 1.
         self.url_free_tweet_text_array = []
@@ -35,7 +46,7 @@ class DataPreProcessor():
         self.cleansed_tweet_text_array = []
 
     # converts the text column of the DataFrame to array
-    def convert_text_to_array(self, dataframe):
+    def convert_df_to_array(self, dataframe):
 
         return dataframe.loc[:, 'text'].values
 
@@ -74,6 +85,19 @@ class DataPreProcessor():
         text = html.unescape(text)
         return text
 
+    def remove_non_ascii_characters(self, tweet_tokens):
+
+        new_tokens = []
+
+        for token in tweet_tokens:
+
+            new_token = unicodedata.normalize('NFKD', token).encode(
+                'ascii', 'ignore').decode('utf-8', 'ignore')
+
+            new_tokens.append(new_token)
+
+        return new_tokens
+
     def convert_to_lowercase(self, tokenized_tweet):
 
         tokenized_tweet_lc = []
@@ -93,7 +117,21 @@ class DataPreProcessor():
                 new_tokens.append(new_token)
         return new_tokens
 
+    def replace_numbers_with_words(self, tweet_tokens):
+
+        p = inflect.engine()
+
+        new_tokens = []
+        for token in tweet_tokens:
+            if token.isdigit():
+                new_token = p.number_to_words(token)
+                new_tokens.append(new_token)
+            else:
+                new_tokens.append(token)
+        return new_tokens
+
     # words is an array
+
     def remove_stopwords(self, single_tweet_tokenized):
 
         new_single_tweet = []
@@ -121,17 +159,22 @@ class DataPreProcessor():
         tokenized_tweet = nltk.word_tokenize(single_tweet)
 
         # REMOVE NON-ASCII
+        clean_tokenized_tweet = self.remove_non_ascii_characters(
+            tokenized_tweet)
 
         # CONVERT TO LOWERCASE
-        clean_tokenized_tweet = self.convert_to_lowercase(tokenized_tweet)
+        clean_tokenized_tweet = self.convert_to_lowercase(
+            clean_tokenized_tweet)
 
         # REMOVE PUNCTUATION
-        # clean_tokenized_tweet = self.remove_punctuation(clean_tokenized_tweet)
+        clean_tokenized_tweet = self.remove_punctuation(clean_tokenized_tweet)
 
         # REPLACE NUMBERS
+        clean_tokenized_tweet = self.replace_numbers_with_words(
+            clean_tokenized_tweet)
 
         # REMOVE STOP WORDS
-        # clean_tokenized_tweet = self.remove_stopwords(clean_tokenized_tweet)
+        clean_tokenized_tweet = self.remove_stopwords(clean_tokenized_tweet)
 
         return clean_tokenized_tweet
 
@@ -153,14 +196,16 @@ class DataPreProcessor():
 
     def inspect(self):
 
-        print("RAW: ", self.raw_tweet_text_array[11])
-        print("CLEANSED", self.cleansed_tweet_text_array[11])
+        print("RAW: ", self.raw_tweet_text_array[2])
+        print("CLEANSED", self.cleansed_tweet_text_array[2])
 
-        print("RAW: ", self.raw_tweet_text_array[463])
-        print("CLEANSED", self.cleansed_tweet_text_array[463])
+        print("RAW: ", self.raw_tweet_text_array[3])
+        print("CLEANSED", self.cleansed_tweet_text_array[3])
 
+        """
         print("RAW: ", self.raw_tweet_text_array[2451])
         print("CLEANSED", self.cleansed_tweet_text_array[2451])
+        """
 
     def flatten_words_from_tweets(self):
 

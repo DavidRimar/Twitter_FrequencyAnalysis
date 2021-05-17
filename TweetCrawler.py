@@ -5,6 +5,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text
 from contextlib import contextmanager
 import json
+from Model import Tweet, Place
+import pandas as pd
 
 """
 The TweetCrawler class is responsible for query the DB.
@@ -33,35 +35,46 @@ class TweetCrawler():
     Queries Data from the database, with an SQL statement
     as an argument as string.
     """
-    # 1.
 
-    def crawl_data_with_session(self, statement):
-
-        # query to be returned
-        # query_object = None
+    def crawl_data_with_session(self, model, filtering=None):
 
         # connect to DB with session
         with self.session_scope() as s:
 
             try:
-                # use session to execute statement
-                query_result = s.query(Tweet).all()
 
-                print("Query successful!")
+                query_result = None
+                df_query_result = {}
 
-                return query_result
+                if filtering == None:
+
+                    # use session to get all rows
+                    query_result = s.query(model).all()
+
+                    df_query_result = self.convert_results_to_df(query_result)
+
+                    print("Query successful!")
+
+                else:  # if filtering is not none
+
+                    # use session to get rows with flter
+                    query_result = s.query(model).filter(
+                        model.text.ilike(filtering)).all()
+
+                    df_query_result = self.convert_results_to_df(query_result)
+
+                    print("Query with filter successful!")
+
+                # returns a list of 'Tweet's
+                return df_query_result
 
             except:
                 print("Error in the query!")
 
-        # return the query object
-        # return query_object
-
-        """
+    """
     Queries Data from the database, with an SQL statement
     as an argument. (With connection)
     """
-    # 1.
 
     def crawl_data_with_connection(self, statement):
 
@@ -85,7 +98,7 @@ class TweetCrawler():
         # return query_object
 
     """
-    A context manager for the session. 
+    A context manager for the session.
     It ensures that all connections are closed.
     """
     # 2.
@@ -105,3 +118,20 @@ class TweetCrawler():
 
         finally:
             session.close()
+
+    def convert_results_to_df(self, query_result):
+
+        records_df = {}
+
+        if type(query_result) == list:  # if the query is made with session
+
+            # builds a dataframe from each Tweet object as a row
+            records_df = pd.DataFrame([tweet.as_dict()
+                                       for tweet in query_result])
+
+        else:  # if the query is made with connection
+            df_textual_generic = pd.DataFrame(query_result.fetchall())
+            df_textual_generic.columns = query_result.keys()
+            records_df = df_textual_generic
+
+        return records_df
