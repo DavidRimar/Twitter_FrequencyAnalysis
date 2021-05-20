@@ -23,27 +23,63 @@ sources:
 
 """
 
+"""
+Crawls tweets from database.
+Carries out NLP data pre-processing tasks on the text.
+Yields top N most frequent words per day.
+Creates a excel file with the frequency counts for each word and day.
+"""
+
 
 class DataPreProcessor():
 
     ### CONSTRUCTOR ###
-    def __init__(self, text_to_cleanse):
+    def __init__(self, sql_result_as_df):
 
         # nltk.download()
 
         ### INSTANCE VARIABLES ###
-        self.raw_tweet_text_array = self.convert_df_to_array(text_to_cleanse)
+        self.original_df = sql_result_as_df
+
+        self.unique_dates = self.get_unique_dates(sql_result_as_df)
+
+        self.raw_tweet_text_array = self.convert_df_to_array(sql_result_as_df)
+
+        self.raw_tweet_text_array_day = []
 
         # 1.
-        self.url_free_tweet_text_array = []
+        # self.url_free_tweet_text_array = []
 
         # 2.
-        self.capitalised_tweet_text_array = []
+        # self.capitalised_tweet_text_array = []
 
         # 3.
-        self.stopwords_free_tweet_text_array = []
+        # self.stopwords_free_tweet_text_array = []
 
         self.cleansed_tweet_text_array = []
+
+    def get_unique_dates(self, dataframe):
+
+        dates_array = dataframe.loc[:, 'created_at'].values
+
+        unique_dates = []
+
+        # add each unique date to the first column
+        for time in dates_array:
+
+            if time not in unique_dates:
+
+                unique_dates.append(pd.Timestamp(time))
+
+        return unique_dates
+
+    #
+
+    def convert_df_to_array_per_day(self, dataframe, day):
+
+        dataframe_per_day = dataframe.loc[dataframe['created_at'] == day]
+
+        return dataframe_per_day.loc[:, 'text'].values
 
     # converts the text column of the DataFrame to array
     def convert_df_to_array(self, dataframe):
@@ -64,17 +100,10 @@ class DataPreProcessor():
         The same txt string with url's removed.
         """
 
-        # url_free_array = []
+        url_free_tweet_text = " ".join(
+            re.sub(r"http\S+", "", tweet_text).split())
 
-        # for tweet in tweets_array:
-
-        # append the url-free version of the tweet to the url-free array
-        # url_free_array.append()
-
-        # r'https?:\/\/\S*'
-        # "([^0-9A-Za-z \t])|(\w+:\/\/\S+)"
-
-        return " ".join(re.sub(r"http\S+", "", tweet_text).split())
+        return url_free_tweet_text
 
     def fix_contractions(self, tweet_text):
 
@@ -178,11 +207,11 @@ class DataPreProcessor():
 
         return clean_tokenized_tweet
 
-    def cleanse_all_tweets(self):
+    def cleanse_all_tweets(self, tweet_array_to_cleanse):
 
         cleansed_tweets_array = []
 
-        for tweet in self.raw_tweet_text_array:
+        for tweet in tweet_array_to_cleanse:
 
             # cleansed version of the tweet
             cleansed_single_tweet = self.cleanse_single_tweet(tweet)
@@ -190,7 +219,7 @@ class DataPreProcessor():
             # append to cleansed tweets array
             cleansed_tweets_array.append(cleansed_single_tweet)
 
-        self.cleansed_tweet_text_array = cleansed_tweets_array
+        # self.cleansed_tweet_text_array = cleansed_tweets_array
 
         return cleansed_tweets_array
 
@@ -207,23 +236,58 @@ class DataPreProcessor():
         print("CLEANSED", self.cleansed_tweet_text_array[2451])
         """
 
-    def flatten_words_from_tweets(self):
+    def flatten_words_from_tweets(self, cleansed_tweets_array):
 
         flattened_word_corpus = [
-            item for sublist in self.cleansed_tweet_text_array for item in sublist]
+            item for sublist in cleansed_tweets_array for item in sublist]
 
         return flattened_word_corpus
 
-    def create_word_count_dict(self, number):
+    def create_word_count_df(self, cleansed_tweets_array, number):
 
-        words_dict = self.flatten_words_from_tweets()
+        words_dict = self.flatten_words_from_tweets(cleansed_tweets_array)
 
         word_counts_dict = collections.Counter(words_dict)
 
         words_dict_top_n = pd.DataFrame(
-            word_counts_dict.most_common(number), columns=['words', 'counts'])
+            word_counts_dict.most_common(number), columns=['token', 'count'])
 
         return words_dict_top_n
+
+    """
+    Creates a dataframe for one time interval i.e. a day.
+
+    token   count   date
+    drink  44      2021-03-22
+    food   12      2021-03-22
+    """
+
+    def create_wordfreq_per_day(self):
+
+        columns = ['token', 'count', 'date']
+
+        word_freq_df = pd.DataFrame()
+
+        # for each unqie date in self.unique_dates
+        for date in self.unique_dates:
+
+            # get the tweets cleansed
+            cleansed_tweets_day = self.cleanse_all_tweets(
+                self.convert_df_to_array_per_day(self.original_df, date))
+
+            # create a word freq dict for top 15 words
+            w_df_day = self.create_word_count_df(cleansed_tweets_day, 15)
+
+            # create a list for the dates
+            date_list_day = [date] * len(w_df_day)
+
+            # append to w_df
+            w_df_day['date'] = date_list_day
+
+            # append w_df to word_freq_df
+            word_freq_df = word_freq_df.append(w_df_day, ignore_index=True)
+
+        return word_freq_df
 
     def show_word_frequencies(self, number):
 
@@ -233,11 +297,15 @@ class DataPreProcessor():
         fig, axis = plt.subplots(figsize=(8, 8))
 
         # Plot horizontal bar graph
-        words_dict_top_n.sort_values(by='counts').plot.barh(x='words',
-                                                            y='counts',
+        words_dict_top_n.sort_values(by='counts').plot.barh(x='token',
+                                                            y='count',
                                                             ax=axis,
                                                             color="blue")
 
         axis.set_title("Most Frequent Words Found in Tweets")
 
         plt.show()
+
+    def inspect_dates(self):
+
+        print("Unique Dates:\n", self.unique_dates)

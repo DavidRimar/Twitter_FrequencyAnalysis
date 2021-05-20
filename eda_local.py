@@ -3,6 +3,7 @@ from config import *
 import pandas as pd
 from DataPreProcessor import *
 from Model import Tweet, Place
+from datetime_truncate import truncate
 
 # INSTANTIATE TweetCrawler object
 tweetCrawler = TweetCrawler(DATABASE_URI_TRIAL)
@@ -36,8 +37,19 @@ results_temporal_hour = tweetCrawler.crawl_data_with_connection(
 
 results_textual_generic = tweetCrawler.crawl_data_with_session(
     Tweet, '%bristol%')
-print(type(results_textual_generic))
-print(results_textual_generic.head())
+# print(type(results_textual_generic.iloc[1]['created_at']))
+# print(results_textual_generic['created_at'].head())
+
+results_textual_generic['created_at'] = results_textual_generic['created_at'].dt.floor(
+    'd')
+
+# results_textual_generic['created_at'] = results_textual_generic['created_at'].apply(
+#    lambda L: datetime(L.year, L.month, L.day))
+
+# truncate(results_textual_generic['created_at'], 'day')
+
+# print(type(results_textual_generic_day.iloc[1]['created_at']))
+# print(results_textual_generic['created_at'].head())
 
 # CONVERT TO DATAFRAME
 """
@@ -54,18 +66,24 @@ df_textual_generic.columns = results_textual_generic.keys()
 # INSPECT
 # print("DAY:\n", df_temporal_day.head())
 # print("HOUR:\n", df_temporal_hour.head())
-print("TEXT:\n", len(results_textual_generic))
+
+# print("TEXT:\n", len(results_textual_generic))
 
 # DATA PREPROCESSOR
 data_pre_processor = DataPreProcessor(results_textual_generic)
 
+# data_pre_processor.inspect_dates()
 # convert to array
 # data_pre_processor.convert_to_array(df_textual_generic)
 
 # do all pre-processing steps (includes 1 remove stop words...)
-data_pre_processor.cleanse_all_tweets()
+# data_pre_processor.cleanse_all_tweets()
 
 # inspect cleansed tweets
-data_pre_processor.inspect()
+# data_pre_processor.inspect()
 
-data_pre_processor.show_word_frequencies(20)
+# data_pre_processor.show_word_frequencies(20)
+
+w_df_per_day = data_pre_processor.create_wordfreq_per_day()
+
+print(w_df_per_day)
