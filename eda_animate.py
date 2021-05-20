@@ -1,6 +1,7 @@
 from TweetCrawler import *
 from config import *
 import pandas as pd
+import numpy as np
 from DataPreProcessor import *
 from Model import Tweet, Place
 import datetime
@@ -9,7 +10,7 @@ import matplotlib.pyplot as plt
 from utils import *
 
 # DUMMY DATA (after all preprocessing)
-df = pd.read_csv('wordfreq.csv')
+df = pd.read_csv('data/wordfreq.csv')
 
 # print(df.head())
 
@@ -33,6 +34,8 @@ def convert_to_bc_format(dataframe):
 
     new_df = pd.DataFrame(index=dates, columns=vocab)
 
+    new_df.index.name = 'date'
+
     for date in dates:
 
         # original dataframe
@@ -44,11 +47,11 @@ def convert_to_bc_format(dataframe):
 
             count_value = rel_row.loc[:, 'count'].values
 
-            value = 1
+            value = np.float64(1.0)
 
             if count_value.size != 0:
 
-                value = count_value[0]
+                value = np.float64(count_value[0])
 
             # print(type(value))
             # set value
@@ -90,46 +93,27 @@ def build_dates(dataframe):
     return unique_dates
 
 
-# PLOT IT
+# CONVERSIONS
 new_df = convert_to_bc_format(df)
 
-new_df.index.name = 'date'
-# new_df = new_df.set_index('datetime')
-print(new_df.head())
 
-print(type(new_df.index))
-
-
-# final_df = pd.to_numeric(new_df, errors='coerce')
-
-
+# print(new_df.head())
 # print(type(new_df.iloc[2]['google']))
+# print(type(new_df.index))
 
-# new_df.to_csv('result.csv')
-"""
-df_values, df_ranks = bcr.prepare_wide_data(new_df, steps_per_period=4,
-                                            orientation='h', sort='desc')
-"""
 
-# print(type(new_df.iloc[2]['google']))
+# READ CSV (to be used for bar chart directly)
+loc_df = pd.read_csv('data/result.csv', parse_dates=True, index_col=0)
 
-sdf = load_dataset('local')
-
-print(sdf.head())
-# print(type(sdf.index))
-
-# print(type(sdf.iloc[2]['Belgium']))
-
-# adf = pd.read_csv('result.csv')
-
-# print(adf.head())
-# sdf.to_csv('covid.csv')
+# print(loc_df.head())
+# print(type(loc_df.iloc[1][1]))
+# print(type(loc_df.index))
 
 # ANIMATE IT
 
 bcr.bar_chart_race(
-    df=new_df,
-    filename='ex3.html',
+    df=loc_df,
+    filename='example.html',
     orientation='h',
     sort='desc',
     n_bars=5,
@@ -138,22 +122,22 @@ bcr.bar_chart_race(
     steps_per_period=10,
     interpolate_period=False,
     label_bars=True,
-    bar_size=.95,
+    bar_size=.9,
     period_label={'x': .99, 'y': .25, 'ha': 'right', 'va': 'center'},
     period_fmt='%B %d, %Y',
     period_summary_func=lambda v, r: {'x': .99, 'y': .18,
-                                      's': f'Total deaths: {v.nlargest(6).sum():,.0f}',
+                                      's': f'Total words: {v.nlargest(6).sum():,.0f}',
                                       'ha': 'right', 'size': 8, 'family': 'Courier New'},
     perpendicular_bar_func='median',
     period_length=500,
     figsize=(5, 3),
     dpi=144,
     cmap='dark12',
-    title='COVID-19 Deaths by Country',
+    title='Word Frequencies By Day',
     title_size='',
     bar_label_size=7,
     tick_label_size=7,
-    shared_fontdict={'family': 'Helvetica', 'color': '.1'},
+    shared_fontdict={'family': 'Helvetica', 'color': '.2'},
     scale='linear',
     writer=None,
     fig=None,
