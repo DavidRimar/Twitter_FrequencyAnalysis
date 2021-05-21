@@ -4,74 +4,80 @@ import pandas as pd
 from DataPreProcessor import *
 from Model import Tweet, Place
 from datetime_truncate import truncate
+from DataAnimator import *
+from matplotlib.animation import FuncAnimation, PillowWriter
+import bar_chart_race as bcr
 
 # INSTANTIATE TweetCrawler object
 tweetCrawler = TweetCrawler(DATABASE_URI_TRIAL)
 
-# SQL STATEMENTS
-# statement = "SELECT twitter_id, text, places_full_name FROM test"
-statement_temporal_day = "SELECT COUNT(date_trunc('day', created_at)) AS count, date_trunc('day', created_at) AS day FROM tweets GROUP BY date_trunc('day', created_at)"
-statement_temporal_hour = "SELECT COUNT(date_trunc('hour', created_at)) AS count, date_trunc('hour', created_at) AS hour FROM tweets GROUP BY date_trunc('hour', created_at)"
-
-
-statement_textual_generic = "SELECT * FROM tweets_hasgeo_fullarch_neg"
-
-query_filter = ""
-
-#statement_textual_bristol = 'SELECT text FROM tweets_hasgeo_fullarch_neg'
-# statement_textual_bristol_2 = 'SELECT * FROM tweets_hasgeo_fullarch_neg WHERE "{column}" ILIKE %{keyword}%'.format(column=column,
-#                                                                                                                   keyword=bristol)
-
-
-# QUERY DATA AND STORE RESULTS
-"""
-results_temporal_day = tweetCrawler.crawl_data_with_connection(
-    statement_temporal_day)
-
-results_temporal_hour = tweetCrawler.crawl_data_with_connection(
-    statement_temporal_hour)
-"""
-# results_textual_generic = tweetCrawler.crawl_data_with_connection(
-#    statement_textual_generic)
-
-
+# GET tweets
 results_textual_generic = tweetCrawler.crawl_data_with_session(
     Tweet, '%bristol%')
+
+# INSPECT
 # print(type(results_textual_generic.iloc[1]['created_at']))
 # print(results_textual_generic['created_at'].head())
 
+# CONVERT 'created_at' to daily
 results_textual_generic['created_at'] = results_textual_generic['created_at'].dt.floor(
     'd')
 
 # results_textual_generic['created_at'] = results_textual_generic['created_at'].apply(
 #    lambda L: datetime(L.year, L.month, L.day))
 
-# truncate(results_textual_generic['created_at'], 'day')
-
-# print(type(results_textual_generic_day.iloc[1]['created_at']))
-# print(results_textual_generic['created_at'].head())
-
-# CONVERT TO DATAFRAME
-"""
-df_temporal_day = pd.DataFrame(results_temporal_day.fetchall())
-df_temporal_day.columns = results_temporal_day.keys()
-
-df_temporal_hour = pd.DataFrame(results_temporal_hour.fetchall())
-df_temporal_hour.columns = results_temporal_hour.keys()
-"""
-"""
-df_textual_generic = pd.DataFrame(results_textual_generic.fetchall())
-df_textual_generic.columns = results_textual_generic.keys()
-"""
-# INSPECT
-# print("DAY:\n", df_temporal_day.head())
-# print("HOUR:\n", df_temporal_hour.head())
-
-# print("TEXT:\n", len(results_textual_generic))
-
 # DATA PREPROCESSOR
 data_pre_processor = DataPreProcessor(results_textual_generic)
 
+# GET WORD FREQ DATAFRAME PER DAY
+w_df_per_day = data_pre_processor.create_wordfreq_per_day()
+
+print(w_df_per_day)
+
+# GET WORD FREQ DATAFRAME READY FOR ANIMATION
+data_animator = DataAnimator(w_df_per_day)
+
+bc_df = data_animator.convert_to_bc_format(w_df_per_day, 'data/result3.csv')
+
+print(bc_df)
+
+# loc_df = pd.read_csv('data/result3.csv', parse_dates=True, index_col=0)
+
+bcr.bar_chart_race(
+    df=bc_df,
+    filename='example3.gif',
+    orientation='h',
+    sort='desc',
+    n_bars=15,
+    fixed_order=False,
+    fixed_max=True,
+    steps_per_period=10,
+    interpolate_period=False,
+    label_bars=True,
+    bar_size=.8,
+    period_label={'x': .99, 'y': .25, 'ha': 'right', 'va': 'center'},
+    period_fmt='%B %d, %Y',
+    period_summary_func=lambda v, r: {'x': .99, 'y': .18,
+                                      's': f'Total words: {v.nlargest(6).sum():,.0f}',
+                                      'ha': 'right', 'size': 8, 'family': 'Courier New'},
+    perpendicular_bar_func='median',
+    period_length=500,
+    figsize=(8, 3),
+    dpi=144,
+    cmap='prism',
+    title='Twitter Word Frequencies By Day For "Bristol" Tweets',
+    title_size='',
+    bar_label_size=7,
+    tick_label_size=7,
+    shared_fontdict={'family': 'DejaVu Sans', 'color': '.2'},
+    scale='linear',
+    writer=None,
+    fig=None,
+    bar_kwargs={'alpha': .7},
+    filter_column_colors=False)
+
+
+# JUNK
 # data_pre_processor.inspect_dates()
 # convert to array
 # data_pre_processor.convert_to_array(df_textual_generic)
@@ -83,7 +89,3 @@ data_pre_processor = DataPreProcessor(results_textual_generic)
 # data_pre_processor.inspect()
 
 # data_pre_processor.show_word_frequencies(20)
-
-w_df_per_day = data_pre_processor.create_wordfreq_per_day()
-
-print(w_df_per_day)
