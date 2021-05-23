@@ -13,6 +13,8 @@ import contractions
 from numpy.compat import unicode
 import html
 import inflect
+from nltk.tokenize import TweetTokenizer
+from string import punctuation
 
 
 """
@@ -139,11 +141,28 @@ class DataPreProcessor():
 
     def remove_punctuation(self, tweet_tokens):
 
+        # use Python's string punctuation except # and @
+        my_punctuation = punctuation.replace("@", "")
+        my_punctuation = my_punctuation.replace("#", "")
+
+        my_punc_list = []
+
+        for s in my_punctuation:
+            my_punc_list.append(s)
+
         new_tokens = []
         for token in tweet_tokens:
-            new_token = re.sub(r'[^\w\s]', '', token)
-            if new_token != '':
+            # new_token = re.sub(r'[^\w\s]', '', token)
+            new_token = token
+
+            for punc in my_punc_list:
+
+                new_token = new_token.replace(punc, '')
+
+            # @ not used to indicate username but the word at
+            if new_token != '' and new_token != '@':
                 new_tokens.append(new_token)
+
         return new_tokens
 
     def replace_numbers_with_words(self, tweet_tokens):
@@ -185,7 +204,10 @@ class DataPreProcessor():
         single_tweet = self.unescape_html_entities(single_tweet)
 
         # TOKENIZE WORDS
-        tokenized_tweet = nltk.word_tokenize(single_tweet)
+        tweet_tokenizer = TweetTokenizer()
+        tokenized_tweet = tweet_tokenizer.tokenize(single_tweet)
+
+        # tokenized_tweet = nltk.word_tokenize(single_tweet)
 
         # REMOVE NON-ASCII
         clean_tokenized_tweet = self.remove_non_ascii_characters(
@@ -213,8 +235,12 @@ class DataPreProcessor():
 
         for tweet in tweet_array_to_cleanse:
 
+            print("RAW TWEET:\n", tweet)
+
             # cleansed version of the tweet
             cleansed_single_tweet = self.cleanse_single_tweet(tweet)
+
+            print("CLEANSED TWEET:\n", cleansed_single_tweet)
 
             # append to cleansed tweets array
             cleansed_tweets_array.append(cleansed_single_tweet)
@@ -231,10 +257,8 @@ class DataPreProcessor():
         print("RAW: ", self.raw_tweet_text_array[3])
         print("CLEANSED", self.cleansed_tweet_text_array[3])
 
-        """
-        print("RAW: ", self.raw_tweet_text_array[2451])
-        print("CLEANSED", self.cleansed_tweet_text_array[2451])
-        """
+        print("RAW: ", self.raw_tweet_text_array[21])
+        print("CLEANSED", self.cleansed_tweet_text_array[21])
 
     def flatten_words_from_tweets(self, cleansed_tweets_array):
 

@@ -5,7 +5,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text
 from contextlib import contextmanager
 import json
-from Model import Tweet, Place
+# from Model import Tweet, Place
+# from ModelTest import Tweet, Place
 import pandas as pd
 
 """
@@ -28,9 +29,6 @@ class TweetCrawler():
 
     ### METHODS ###
 
-    # 1. crawl_data()
-    # 2. session_scope()
-
     """
     Queries Data from the database, with an SQL statement
     as an argument as string.
@@ -51,6 +49,8 @@ class TweetCrawler():
                     # use session to get all rows
                     query_result = s.query(model).all()
 
+                    print("Query ALL works!")
+
                     df_query_result = self.convert_results_to_df(query_result)
 
                     print("Query successful!")
@@ -60,6 +60,8 @@ class TweetCrawler():
                     # use session to get rows with flter
                     query_result = s.query(model).filter(
                         model.text.ilike(filtering)).all()
+
+                    print("Query wit Filter works!")
 
                     df_query_result = self.convert_results_to_df(query_result)
 

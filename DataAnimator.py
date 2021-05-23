@@ -7,7 +7,6 @@ from Model import Tweet, Place
 import datetime
 import bar_chart_race as bcr
 import matplotlib.pyplot as plt
-from utils import *
 
 
 class DataAnimator():
