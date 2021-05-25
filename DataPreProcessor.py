@@ -286,7 +286,7 @@ class DataPreProcessor():
     food   12      2021-03-22
     """
 
-    def create_wordfreq_per_day(self):
+    def create_wordfreq_per_day(self, topNwords):
 
         columns = ['token', 'count', 'date']
 
@@ -299,8 +299,9 @@ class DataPreProcessor():
             cleansed_tweets_day = self.cleanse_all_tweets(
                 self.convert_df_to_array_per_day(self.original_df, date))
 
-            # create a word freq dict for top 15 words
-            w_df_day = self.create_word_count_df(cleansed_tweets_day, 15)
+            # create a word freq dict for top 20 words
+            w_df_day = self.create_word_count_df(
+                cleansed_tweets_day, topNwords)
 
             # create a list for the dates
             date_list_day = [date] * len(w_df_day)

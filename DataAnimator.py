@@ -3,7 +3,6 @@ from config import *
 import pandas as pd
 import numpy as np
 from DataPreProcessor import *
-from Model import Tweet, Place
 import datetime
 import bar_chart_race as bcr
 import matplotlib.pyplot as plt
@@ -46,6 +45,9 @@ class DataAnimator():
                 # print(type(value))
                 # set value
                 new_df.set_value(date, token, value)
+
+        # sort VALUES BY DATE
+        new_df = new_df.sort_values("date", ascending=True)
 
         # save to csv then read it in
         new_df.to_csv(filepath)

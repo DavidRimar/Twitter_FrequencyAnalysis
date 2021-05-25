@@ -2,6 +2,7 @@ from sqlalchemy.types import ARRAY, Float, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.types import ARRAY, Float
+from geoalchemy2 import Geometry
 
 Base = declarative_base()
 
@@ -12,37 +13,37 @@ Representation of the data schema of 'Tweet' table in the PostgreSQL.
 
 
 class Tweet(Base):
-    __tablename__ = 'tweets_hasgeo_fullarch_neg'
+    __tablename__ = 'tweets_geo'
     id = Column(Integer, primary_key=True)  # Auto-generated ID
     tweet_id = Column(String)  # (data.id)
     text = Column(String)  # (data.text)
-    created_at = Column(DateTime)  # (data.created_at)
     context_annotations = Column(ARRAY(String), nullable=True)
-    geo_coordinates_type = Column(String, nullable=True)
-    geo_coordinates_coords = Column(ARRAY(Float), nullable=True)
+    created_at = Column(DateTime)  # (data.created_at)
     geo_place_id = Column(String, nullable=True)  # (includes.places.id)
     stream_rule_tag = Column(String)  # (matching_rules.tag)
+    geom_points = Column(Geometry('POINT'), nullable=True)
+    geom_points_astext = Column(String, nullable=True)
 
     # Constructor
     def __repr__(self):
-        return "<Tweet(tweet_id='{}', text='{}', created_at={}, context_annotations={}, geo_coordinates_type={}, geo_coordinates_coords={}, geo_place_id={}, stream_rule_tag={})>".format(self.tweet_id, self.text, self.created_at, self.context_annotations, self.geo_coordinates_type, self.geo_coordinates_coords, self.geo_place_id, self.stream_rule_tag)
+        return "<Tweet(tweet_id='{}', text='{}', context_annotations={}, created_at={}, geo_place_id={}, stream_rule_tag={}, geom_points={}, geom_points_astext={})>".format(self.tweet_id, self.text, self.context_annotations, self.created_at, self.geo_place_id, self.stream_rule_tag, self.geom_points, self.geom_points_astext)
 
     def as_dict(self):
 
         tweet_as_dict = {'tweet_id': self.tweet_id,
                          'text': self.text,
-                         'created_at': self.created_at,
                          'context_annotations': self.context_annotations,
-                         'geo_coordinates_type': self.geo_coordinates_type,
-                         'geo_coordinates_coords': self.geo_coordinates_coords,
+                         'created_at': self.created_at,
                          'geo_place_id': self.geo_place_id,
-                         'stream_rule_tag': self.stream_rule_tag}
+                         'stream_rule_tag': self.stream_rule_tag,
+                         'geom_points': self.geom_points,
+                         'geom_points_astext': self.geom_points_astext}
 
         return tweet_as_dict
 
 
 class Place(Base):
-    __tablename__ = 'places_hasgeo_fullarch_neg'
+    __tablename__ = 'places_geo'
     id = Column(Integer, primary_key=True)  # Auto-generated ID
     places_geo_place_id = Column(String)  # (includes.places.id)
     places_geo_bbox = Column(ARRAY(Float))  # (includes.places.geo.bbox)
@@ -52,4 +53,4 @@ class Place(Base):
 
     # Constructor
     def __repr__(self):
-        return "<Tweet(places_geo_place_id={}, places_geo_bbox={}, places_full_name={}, places_place_type={}, places_country_code={})>".format(self.places_geo_place_id, self.places_geo_bbox, self.places_full_name, self.places_place_type, self.places_country_code)
+        return "<Place(places_geo_place_id={}, places_geo_bbox={}, places_full_name={}, places_place_type={}, places_country_code={})>".format(self.places_geo_place_id, self.places_geo_bbox, self.places_full_name, self.places_place_type, self.places_country_code)
