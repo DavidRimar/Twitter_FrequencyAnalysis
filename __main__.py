@@ -2,7 +2,7 @@ from TweetCrawler import *
 from config import *
 import pandas as pd
 from DataPreProcessor import *
-from Model import Tweet, Place
+from model.ModelBristol import *
 from datetime_truncate import truncate
 from DataAnimator import *
 from matplotlib.animation import FuncAnimation
@@ -16,7 +16,7 @@ def main():
 
     # GET tweets
     results_textual_generic = tweetCrawler.crawl_data_with_session(
-        Tweet, '%covid%')
+        BristolSEM, text_filters=None, tweet_score=True)
 
     # CONVERT 'created_at' to daily
     results_textual_generic['created_at'] = results_textual_generic['created_at'].dt.floor(
@@ -28,18 +28,18 @@ def main():
     # GET WORD FREQ DATAFRAME PER DAY (for top N words)
     w_df_per_day = data_pre_processor.create_wordfreq_per_day(20)
 
-    w_df_per_day.to_csv('wordfreq/processed_tweets_covid.csv')
+    w_df_per_day.to_csv('wordfreq/processed_tweets_bristol_scores4-5.csv')
 
     # GET WORD FREQ DATAFRAME READY FOR ANIMATION
     data_animator = DataAnimator(w_df_per_day)
 
     bc_df = data_animator.convert_to_bc_format(
-        w_df_per_day, 'data/covid.csv')
+        w_df_per_day, 'data/bristol_scores4-5.csv')
 
     # CREATE BARCHART RACE
     bcr.bar_chart_race(
         df=bc_df,
-        filename='videos/covid.mp4',
+        filename='videos/bristol_scores4-5.mp4',
         orientation='h',
         sort='desc',
         n_bars=20,

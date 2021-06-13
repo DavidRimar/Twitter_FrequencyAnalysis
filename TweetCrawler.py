@@ -34,7 +34,7 @@ class TweetCrawler():
     as an argument as string.
     """
 
-    def crawl_data_with_session(self, model, filtering=None):
+    def crawl_data_with_session(self, model, text_filters=None, tweet_score=False):
 
         # connect to DB with session
         with self.session_scope() as s:
@@ -44,28 +44,55 @@ class TweetCrawler():
                 query_result = None
                 df_query_result = {}
 
-                if filtering == None:
+                if text_filters == None:
 
-                    # use session to get all rows
-                    query_result = s.query(model).all()
+                    if tweet_score == False:
+                        # use session to get all rows
+                        query_result = s.query(model).all()
 
-                    print("Query ALL works!")
+                        print("Query ALL works!")
 
-                    df_query_result = self.convert_results_to_df(query_result)
+                        df_query_result = self.convert_results_to_df(
+                            query_result)
 
-                    print("Query successful!")
+                        print("Query successful!")
 
-                else:  # if filtering is not none
+                    elif tweet_score == True:
+
+                        # use session to get rows with flter
+                        query_result = s.query(model).filter(
+                            (model.tweet_score == 4) | (model.tweet_score == 5)).all()
+
+                        df_query_result = self.convert_results_to_df(
+                            query_result)
+
+                        print("Query successful!")
+
+                elif len(text_filters) == 1:  # if filtering is not none
 
                     # use session to get rows with flter
                     query_result = s.query(model).filter(
-                        model.text.ilike(filtering)).all()
+                        model.text.ilike(text_filters)).all()
 
-                    print("Query wit Filter works!")
+                    print("Query with 1 Filter works!")
 
                     df_query_result = self.convert_results_to_df(query_result)
 
                     print("Query with filter successful!")
+
+                """
+                elif len(text_filters) == 2:
+
+                    # use session to get rows with flter
+                    query_result = s.query(model).filter(_or(
+                        model.text.ilike(text_filters[0]), model.text.ilike(text_filters[1]))).all()
+
+                    print("Query with 2 Filter works!")
+
+                    df_query_result = self.convert_results_to_df(query_result)
+
+                    print("Query with filter successful!")
+                """
 
                 # returns a list of 'Tweet's
                 return df_query_result

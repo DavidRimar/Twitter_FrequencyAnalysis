@@ -8,10 +8,14 @@ The actual animation is implemented using [bar_chart_race](https://github.com/de
 
 Here are some example GIFs:
 
-- "bristol" tweets
+- Tweets containing references to "bristol"
 
 ![](videos/bristol.gif)
 
-- "covid" tweets
+- A small subset of 2733 Tweets that are definitely believed to be about the Bristol riots.
+
+![](videos/bristol_scores4-5.gif)
+
+- Tweets containing references to "covid"
 
 ![](videos/covid.gif)

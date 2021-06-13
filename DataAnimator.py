@@ -36,15 +36,15 @@ class DataAnimator():
 
                 count_value = rel_row.loc[:, 'count'].values
 
-                value = np.float64(1.0)
+                value = float(1.0)
 
                 if count_value.size != 0:
 
-                    value = np.float64(count_value[0])
+                    value = float(count_value[0])
 
                 # print(type(value))
                 # set value
-                new_df.set_value(date, token, value)
+                new_df.at[date, token] = value
 
         # sort VALUES BY DATE
         new_df = new_df.sort_values("date", ascending=True)

@@ -235,12 +235,12 @@ class DataPreProcessor():
 
         for tweet in tweet_array_to_cleanse:
 
-            print("RAW TWEET:\n", tweet)
+            #print("RAW TWEET:\n", tweet)
 
             # cleansed version of the tweet
             cleansed_single_tweet = self.cleanse_single_tweet(tweet)
 
-            print("CLEANSED TWEET:\n", cleansed_single_tweet)
+            #print("CLEANSED TWEET:\n", cleansed_single_tweet)
 
             # append to cleansed tweets array
             cleansed_tweets_array.append(cleansed_single_tweet)
