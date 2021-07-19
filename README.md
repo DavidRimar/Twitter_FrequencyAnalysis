@@ -10,12 +10,9 @@ Here are some example GIFs:
 
 - Tweets containing references to "bristol"
 
-![](videos/bristol.gif)
+![](videos/bristol_alltweets.gif)
 
-- A small subset of 2733 Tweets that are definitely believed to be about the Bristol riots.
+- A small subset of 2733 Tweets that are definitely believed to be about the Bristol riots. The subset was obtained from the first
+  dataset after assigning scores on the scale of 1 (very unlikely) and 5 (very likely) based on word co-occurrences such as "Bristol" and "riot".
 
-![](videos/bristol_scores4-5.gif)
-
-- Tweets containing references to "covid"
-
-![](videos/covid.gif)
+![](videos/bristol_scores_45.gif)

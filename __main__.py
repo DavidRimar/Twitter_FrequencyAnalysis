@@ -28,18 +28,18 @@ def main():
     # GET WORD FREQ DATAFRAME PER DAY (for top N words)
     w_df_per_day = data_pre_processor.create_wordfreq_per_day(20)
 
-    w_df_per_day.to_csv('wordfreq/processed_tweets_bristol_scores4-5.csv')
+    w_df_per_day.to_csv('wordfreq/processed_tweets_bristol_scores_45.csv')
 
     # GET WORD FREQ DATAFRAME READY FOR ANIMATION
     data_animator = DataAnimator(w_df_per_day)
 
     bc_df = data_animator.convert_to_bc_format(
-        w_df_per_day, 'data/bristol_scores4-5.csv')
+        w_df_per_day, 'data/bristol_scores_45.csv')
 
     # CREATE BARCHART RACE
     bcr.bar_chart_race(
         df=bc_df,
-        filename='videos/bristol_scores4-5.mp4',
+        filename='videos/bristol_scores_45.mp4',
         orientation='h',
         sort='desc',
         n_bars=20,
@@ -52,11 +52,11 @@ def main():
         period_label={'x': .98, 'y': .3, 'ha': 'right', 'va': 'center'},
         period_template='%B %d, %Y',
         period_summary_func=lambda v, r: {'x': .98, 'y': .2,
-                                          's': f'Total deaths: {v.sum():,.0f}',
+                                          's': f'Total words: {v.sum():,.0f}',
                                           'ha': 'right', 'size': 11},
         perpendicular_bar_func='median',
         colors='prism',
-        title='Twitter Word Frequencies By Day For "Bristol" Tweets',
+        title='Twitter Word Frequencies By Day For Tweets with score 4 and 5',
         bar_size=.85,
         bar_textposition='inside',
         bar_texttemplate='{x:,.0f}',

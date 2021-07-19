@@ -133,3 +133,6 @@ dmypy.json
 
 # temporary files
 .tmp
+
+# ignore folder in videos
+videos/ignore
