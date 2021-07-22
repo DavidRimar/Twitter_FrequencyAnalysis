@@ -68,7 +68,7 @@ class TweetCrawler():
 
                         print("Query successful!")
 
-                elif len(text_filters) == 1:  # if filtering is not none
+                else:  # if filtering is not none
 
                     # use session to get rows with flter
                     query_result = s.query(model).filter(
@@ -95,7 +95,8 @@ class TweetCrawler():
                 """
 
                 # returns a list of 'Tweet's
-                return df_query_result
+                new_df = pd.DataFrame.from_dict(df_query_result)
+                return new_df
 
             except:
                 print("Error in the query!")
